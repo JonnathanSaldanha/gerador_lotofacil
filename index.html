@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Jogos Lotofácil com Sequências</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #3a7bd5);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            overflow: hidden;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3a7bd5;
+        }
+        
+        h1 {
+            color: #1a2a6c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2rem;
+        }
+        
+        .lotofacil-logo {
+            background-color: #1a2a6c;
+            color: white;
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .highlight {
+            background-color: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-section, .output-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .input-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            border-color: #3a7bd5;
+            outline: none;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .generate-btn {
+            background-color: #1a2a6c;
+            color: white;
+        }
+        
+        .generate-btn:hover {
+            background-color: #0e1a4a;
+            transform: translateY(-3px);
+        }
+        
+        .clear-btn {
+            background-color: #f1f3f5;
+            color: #333;
+        }
+        
+        .clear-btn:hover {
+            background-color: #e9ecef;
+            transform: translateY(-3px);
+        }
+        
+        .games-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .game-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #3a7bd5;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .game-title {
+            font-weight: bold;
+            color: #1a2a6c;
+            font-size: 1.2rem;
+        }
+        
+        .game-stats {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .number {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #3a7bd5;
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 1rem;
+            position: relative;
+        }
+        
+        .number.even {
+            background-color: #1a2a6c;
+        }
+        
+        .number.odd {
+            background-color: #3a7bd5;
+        }
+        
+        .number.sequence {
+            background-color: #ff6b6b !important;
+            transform: scale(1.1);
+            z-index: 1;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        .sequence-indicator {
+            background-color: #ff6b6b;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        
+        .sequence-type {
+            background-color: #4ecdc4;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        .summary {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .summary h3 {
+            color: #1a2a6c;
+            margin-bottom: 15px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .summary-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .summary-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1a2a6c;
+            margin-bottom: 5px;
+        }
+        
+        .summary-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .rules-info {
+            background-color: #e8f4fc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .rules-info h3 {
+            color: #1a2a6c;
+            margin-bottom: 15px;
+        }
+        
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .rule-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3a7bd5;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background-color: #ffe6e6;
+            color: #cc0000;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .sequence-highlight {
+            background-color: #fff9e6;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffcc00;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gerador de Jogos Lotofácil com Sequências</h1>
+            <div class="subtitle">Todos os jogos incluem sequências de 4, 5, 6 ou 7 números consecutivos</div>
+            <div class="lotofacil-logo">LOTOFÁCIL COM SEQUÊNCIAS</div>
+            <div style="margin-top: 15px;">
+                <span class="highlight">NOVO: Sequências obrigatórias em todos os jogos</span>
+            </div>
+        </header>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2>Configurações do Gerador</h2>
+                
+                <div class="form-group">
+                    <label for="previousGame">Último Concurso (15 números de 01 a 25):</label>
+                    <div class="input-info">Digite os números separados por vírgula ou espaço</div>
+                    <input type="text" id="previousGame" placeholder="Ex: 1,2,5,7,8,9,11,13,14,17,19,21,22,23,25" value="1,2,5,7,8,9,11,13,14,17,19,21,22,23,25">
+                </div>
+                
+                <div class="form-group">
+                    <label for="gamesCount">Quantidade de Jogos a Gerar:</label>
+                    <input type="number" id="gamesCount" min="1" max="50" value="12">
+                </div>
+                
+                <div class="form-group">
+                    <label for="sequenceType">Tipo de Sequência Preferencial:</label>
+                    <select id="sequenceType">
+                        <option value="mixed">Misturado (4, 5, 6, 7 números)</option>
+                        <option value="4">Apenas 4 números</option>
+                        <option value="5">Apenas 5 números</option>
+                        <option value="6">Apenas 6 números</option>
+                        <option value="7">Apenas 7 números</option>
+                    </select>
+                </div>
+                
+                <div class="rules-info">
+                    <h3>Regras Aplicadas</h3>
+                    <div class="rules-grid">
+                        <div class="rule-item">
+                            <strong>Repetição do anterior:</strong><br>
+                            • 60%: 8 números<br>
+                            • 20%: 9 números<br>
+                            • 10%: 7 números<br>
+                            • 10%: 6 números
+                        </div>
+                        <div class="rule-item">
+                            <strong>Pares x Ímpares:</strong><br>
+                            • 30%: 6 pares, 9 ímpares<br>
+                            • 30%: 7 pares, 8 ímpares<br>
+                            • 30%: 8 pares, 7 ímpares<br>
+                            • 10%: 9 pares, 6 ímpares
+                        </div>
+                        <div class="rule-item">
+                            <strong>Sequências <span class="highlight">(OBRIGATÓRIAS)</span>:</strong><br>
+                            • 100% dos jogos terão<br>
+                            • 40%: 4 números<br>
+                            • 40%: 5 números<br>
+                            • 15%: 6 números<br>
+                            • 5%: 7 números
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="generate-btn" onclick="generateGames()">Gerar Jogos com Sequências</button>
+                    <button class="clear-btn" onclick="clearGames()">Limpar Tudo</button>
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Criando jogos com sequências obrigatórias...</p>
+                </div>
+                
+                <div class="error" id="error"></div>
+            </div>
+            
+            <div class="output-section">
+                <h2>Jogos Gerados com Sequências</h2>
+                <div class="games-container" id="gamesContainer">
+                    <p id="noGames">Nenhum jogo gerado ainda. Configure as opções e clique em "Gerar Jogos".</p>
+                </div>
+                
+                <div class="summary" id="summary" style="display: none;">
+                    <h3>Resumo Estatístico</h3>
+                    <div class="summary-grid" id="summaryGrid"></div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Este gerador cria jogos com sequências obrigatórias de 4 a 7 números consecutivos.</p>
+            <p>Lembre-se: loterias são jogos de azar. Jogue com responsabilidade.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Último concurso padrão
+        const defaultPreviousGame = [1, 2, 5, 7, 8, 9, 11, 13, 14, 17, 19, 21, 22, 23, 25];
+        
+        // Regras de repetição
+        const repetitionRules = [
+            { percentage: 60, repeatCount: 8 },
+            { percentage: 20, repeatCount: 9 },
+            { percentage: 10, repeatCount: 7 },
+            { percentage: 10, repeatCount: 6 }
+        ];
+        
+        // Regras de pares/ímpares
+        const parityRules = [
+            { percentage: 30, evenCount: 6, oddCount: 9 },
+            { percentage: 30, evenCount: 7, oddCount: 8 },
+            { percentage: 30, evenCount: 8, oddCount: 7 },
+            { percentage: 10, evenCount: 9, oddCount: 6 }
+        ];
+        
+        // Regras de sequências (100% dos jogos)
+        const sequenceRules = [
+            { percentage: 40, length: 4 },
+            { percentage: 40, length: 5 },
+            { percentage: 15, length: 6 },
+            { percentage: 5, length: 7 }
+        ];
+        
+        function parseInputNumbers(input) {
+            const numbers = input.replace(/\s+/g, ',')
+                .split(',')
+                .map(num => parseInt(num.trim()))
+                .filter(num => !isNaN(num) && num >= 1 && num <= 25);
+            
+            const uniqueNumbers = [...new Set(numbers)];
+            return uniqueNumbers;
+        }
+        
+        function getRandomNumbers(count, min, max, exclude = []) {
+            const numbers = [];
+            const available = Array.from({length: max - min + 1}, (_, i) => i + min)
+                .filter(n => !exclude.includes(n));
+            
+            while (numbers.length < count && available.length > 0) {
+                const randomIndex = Math.floor(Math.random() * available.length);
+                numbers.push(available[randomIndex]);
+                available.splice(randomIndex, 1);
+            }
+            
+            return numbers.sort((a, b) => a - b);
+        }
+        
+        function countEvenOdd(numbers) {
+            const even = numbers.filter(n => n % 2 === 0).length;
+            const odd = numbers.filter(n => n % 2 === 1).length;
+            return { even, odd };
+        }
+        
+        function countRepeatedNumbers(game, previousGame) {
+            return game.filter(n => previousGame.includes(n)).length;
+        }
+        
+        function findSequence(numbers, length) {
+            const sorted = [...numbers].sort((a, b) => a - b);
+            
+            for (let i = 0; i <= sorted.length - length; i++) {
+                let isSequence = true;
+                for (let j = 1; j < length; j++) {
+                    if (sorted[i + j] !== sorted[i] + j) {
+                        isSequence = false;
+                        break;
+                    }
+                }
+                if (isSequence) {
+                    return sorted.slice(i, i + length);
+                }
+            }
+            
+            return null;
+        }
+        
+        function hasSequence(numbers) {
+            for (let length = 7; length >= 4; length--) {
+                const sequence = findSequence(numbers, length);
+                if (sequence) {
+                    return { length, numbers: sequence };
+                }
+            }
+            return null;
+        }
+        
+        function selectRuleByPercentage(rules, count) {
+            const ruleCounts = {};
+            rules.forEach(rule => {
+                ruleCounts[rule.percentage] = Math.round(count * rule.percentage / 100);
+            });
+            
+            const total = Object.values(ruleCounts).reduce((a, b) => a + b, 0);
+            if (total < count) {
+                const firstKey = Object.keys(ruleCounts)[0];
+                ruleCounts[firstKey] += (count - total);
+            } else if (total > count) {
+                const firstKey = Object.keys(ruleCounts)[0];
+                ruleCounts[firstKey] -= (total - count);
+            }
+            
+            const distributedRules = [];
+            rules.forEach(rule => {
+                for (let i = 0; i < ruleCounts[rule.percentage]; i++) {
+                    distributedRules.push({...rule});
+                }
+            });
+            
+            for (let i = distributedRules.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [distributedRules[i], distributedRules[j]] = [distributedRules[j], distributedRules[i]];
+            }
+            
+            return distributedRules;
+        }
+        
+        function addSequenceToGame(game, sequenceLength) {
+            const maxStart = 25 - sequenceLength + 1;
+            const sequenceStart = Math.floor(Math.random() * maxStart) + 1;
+            const sequence = Array.from({length: sequenceLength}, (_, i) => sequenceStart + i);
+            
+            // Remove números que não estão na sequência e adiciona a sequência
+            const nonSequenceNumbers = game.filter(n => !sequence.includes(n));
+            const numbersToKeep = nonSequenceNumbers.slice(0, 15 - sequenceLength);
+            
+            return [...numbersToKeep, ...sequence].sort((a, b) => a - b);
+        }
+        
+        function ensureSequence(game, targetSequenceLength) {
+            // Primeiro, verifica se já tem uma sequência do tamanho desejado
+            const existingSequence = findSequence(game, targetSequenceLength);
+            if (existingSequence) {
+                return { game, sequence: existingSequence, length: targetSequenceLength };
+            }
+            
+            // Se não tem, tenta encontrar uma sequência maior
+            for (let length = targetSequenceLength + 1; length <= 7; length++) {
+                const largerSequence = findSequence(game, length);
+                if (largerSequence) {
+                    return { game, sequence: largerSequence, length };
+                }
+            }
+            
+            // Se não tem sequência, cria uma
+            const newGame = addSequenceToGame(game, targetSequenceLength);
+            const newSequence = findSequence(newGame, targetSequenceLength);
+            
+            return { game: newGame, sequence: newSequence, length: targetSequenceLength };
+        }
+        
+        function generateGame(previousGame, repetitionRule, parityRule, sequenceRule) {
+            // Determina quantos números repetir do concurso anterior
+            const repeatCount = repetitionRule.repeatCount;
+            
+            // Seleciona números para repetir
+            const repeated = [...previousGame]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, repeatCount);
+            
+            // Determina a distribuição de pares/ímpares
+            const evenCount = parityRule.evenCount;
+            const oddCount = parityRule.oddCount;
+            
+            // Calcula quantos pares/ímpares já temos nos números repetidos
+            const repeatedEven = repeated.filter(n => n % 2 === 0).length;
+            const repeatedOdd = repeated.filter(n => n % 2 === 1).length;
+            
+            // Calcula quantos pares/ímpares ainda precisamos
+            const needEven = Math.max(0, evenCount - repeatedEven);
+            const needOdd = Math.max(0, oddCount - repeatedOdd);
+            
+            // Gera números pares adicionais
+            const availableEven = Array.from({length: 25}, (_, i) => i + 1)
+                .filter(n => n % 2 === 0 && !repeated.includes(n));
+            const newEven = availableEven
+                .sort(() => Math.random() - 0.5)
+                .slice(0, needEven);
+            
+            // Gera números ímpares adicionais
+            const availableOdd = Array.from({length: 25}, (_, i) => i + 1)
+                .filter(n => n % 2 === 1 && !repeated.includes(n) && !newEven.includes(n));
+            const newOdd = availableOdd
+                .sort(() => Math.random() - 0.5)
+                .slice(0, needOdd);
+            
+            // Combina todos os números
+            let game = [...repeated, ...newEven, ...newOdd];
+            
+            // Se ainda não temos 15 números, preenche com números aleatórios
+            if (game.length < 15) {
+                const needed = 15 - game.length;
+                const availableAll = Array.from({length: 25}, (_, i) => i + 1)
+                    .filter(n => !game.includes(n));
+                const additional = availableAll
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, needed);
+                game = [...game, ...additional];
+            }
+            
+            // Ordena o jogo
+            game.sort((a, b) => a - b);
+            
+            // Garante que tenha uma sequência do tamanho desejado
+            const targetSequenceLength = sequenceRule.length;
+            const result = ensureSequence(game, targetSequenceLength);
+            
+            return result;
+        }
+        
+        function generateGames() {
+            // Mostra loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            
+            // Limpa jogos anteriores
+            document.getElementById('gamesContainer').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+            
+            // Pega os valores de entrada
+            const previousGameInput = document.getElementById('previousGame').value;
+            const gamesCount = parseInt(document.getElementById('gamesCount').value);
+            const sequenceType = document.getElementById('sequenceType').value;
+            
+            // Valida entrada
+            let previousGame;
+            if (previousGameInput.trim() === '') {
+                previousGame = defaultPreviousGame;
+            } else {
+                previousGame = parseInputNumbers(previousGameInput);
+            }
+            
+            if (previousGame.length !== 15) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerHTML = 
+                    `Erro: O concurso anterior deve ter exatamente 15 números. Você forneceu ${previousGame.length} números válidos.`;
+                return;
+            }
+            
+            if (gamesCount < 1 || gamesCount > 50) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerHTML = 
+                    'Erro: A quantidade de jogos deve ser entre 1 e 50.';
+                return;
+            }
+            
+            // Ajusta as regras de sequência conforme a seleção
+            let sequenceRulesToUse = [...sequenceRules];
+            if (sequenceType !== 'mixed') {
+                const fixedLength = parseInt(sequenceType);
+                sequenceRulesToUse = [{ percentage: 100, length: fixedLength }];
+            }
+            
+            // Distribui as regras
+            const repetitionRulesDistributed = selectRuleByPercentage(repetitionRules, gamesCount);
+            const parityRulesDistributed = selectRuleByPercentage(parityRules, gamesCount);
+            const sequenceRulesDistributed = selectRuleByPercentage(sequenceRulesToUse, gamesCount);
+            
+            // Gera os jogos
+            const games = [];
+            const gameSequences = [];
+            const stats = {
+                repetition: {6: 0, 7: 0, 8: 0, 9: 0},
+                parity: {'6p9i': 0, '7p8i': 0, '8p7i': 0, '9p6i': 0},
+                sequences: {4: 0, 5: 0, 6: 0, 7: 0}
+            };
+            
+            for (let i = 0; i < gamesCount; i++) {
+                const result = generateGame(
+                    previousGame, 
+                    repetitionRulesDistributed[i], 
+                    parityRulesDistributed[i],
+                    sequenceRulesDistributed[i]
+                );
+                
+                games.push(result.game);
+                gameSequences.push(result);
+                
+                // Atualiza estatísticas
+                const repeated = countRepeatedNumbers(result.game, previousGame);
+                stats.repetition[repeated]++;
+                
+                const {even, odd} = countEvenOdd(result.game);
+                const parityKey = `${even}p${odd}i`;
+                if (stats.parity[parityKey] !== undefined) {
+                    stats.parity[parityKey]++;
+                }
+                
+                // Contabiliza sequências
+                stats.sequences[result.length]++;
+            }
+            
+            // Esconde loading
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                displayGames(games, previousGame, gameSequences, stats);
+            }, 500);
+        }
+        
+        function displayGames(games, previousGame, gameSequences, stats) {
+            const container = document.getElementById('gamesContainer');
+            container.innerHTML = '';
+            
+            if (games.length === 0) {
+                container.innerHTML = '<p id="noGames">Nenhum jogo gerado ainda. Configure as opções e clique em "Gerar Jogos".</p>';
+                return;
+            }
+            
+            games.forEach((game, index) => {
+                const repeated = countRepeatedNumbers(game, previousGame);
+                const {even, odd} = countEvenOdd(game);
+                const sequenceInfo = gameSequences[index];
+                
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card';
+                
+                // Identifica quais números estão na sequência
+                const sequenceNumbers = sequenceInfo.sequence;
+                const sequenceSet = new Set(sequenceNumbers);
+                
+                gameCard.innerHTML = `
+                    <div class="game-header">
+                        <div class="game-title">Jogo ${index + 1}</div>
+                        <div class="game-stats">
+                            Repete ${repeated} do anterior | ${even} pares, ${odd} ímpares
+                        </div>
+                    </div>
+                    <div class="numbers">
+                        ${game.map(num => {
+                            const isEven = num % 2 === 0;
+                            const inSequence = sequenceSet.has(num);
+                            const numberClass = `number ${isEven ? 'even' : 'odd'} ${inSequence ? 'sequence' : ''}`;
+                            return `<div class="${numberClass}" title="${inSequence ? 'Número na sequência' : ''}">${num.toString().padStart(2, '0')}</div>`;
+                        }).join('')}
+                    </div>
+                    <div class="sequence-highlight">
+                        <div class="sequence-indicator">
+                            SEQUÊNCIA DE ${sequenceInfo.length} NÚMEROS: ${sequenceNumbers.join(', ')}
+                            <span class="sequence-type">${sequenceInfo.length} números consecutivos</span>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(gameCard);
+            });
+            
+            // Mostra resumo estatístico
+            displaySummary(stats, games.length);
+        }
+        
+        function displaySummary(stats, totalGames) {
+            const summary = document.getElementById('summary');
+            const summaryGrid = document.getElementById('summaryGrid');
+            
+            summary.style.display = 'block';
+            
+            // Calcula percentuais
+            const rep6 = ((stats.repetition[6] / totalGames) * 100).toFixed(1);
+            const rep7 = ((stats.repetition[7] / totalGames) * 100).toFixed(1);
+            const rep8 = ((stats.repetition[8] / totalGames) * 100).toFixed(1);
+            const rep9 = ((stats.repetition[9] / totalGames) * 100).toFixed(1);
+            
+            const seq4 = ((stats.sequences[4] / totalGames) * 100).toFixed(1);
+            const seq5 = ((stats.sequences[5] / totalGames) * 100).toFixed(1);
+            const seq6 = ((stats.sequences[6] / totalGames) * 100).toFixed(1);
+            const seq7 = ((stats.sequences[7] / totalGames) * 100).toFixed(1);
+            
+            summaryGrid.innerHTML = `
+                <div class="summary-item">
+                    <div class="summary-value">${rep8}%</div>
+                    <div class="summary-label">Repetem 8 números</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${rep9}%</div>
+                    <div class="summary-label">Repetem 9 números</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">100%</div>
+                    <div class="summary-label">Com sequências</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${seq4}%</div>
+                    <div class="summary-label">Sequências de 4</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${seq5}%</div>
+                    <div class="summary-label">Sequências de 5</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${seq6}%</div>
+                    <div class="summary-label">Sequências de 6</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${seq7}%</div>
+                    <div class="summary-label">Sequências de 7</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${totalGames}</div>
+                    <div class="summary-label">Total de jogos</div>
+                </div>
+            `;
+        }
+        
+        function clearGames() {
+            document.getElementById('previousGame').value = defaultPreviousGame.join(',');
+            document.getElementById('gamesCount').value = 12;
+            document.getElementById('sequenceType').value = 'mixed';
+            document.getElementById('gamesContainer').innerHTML = '<p id="noGames">Nenhum jogo gerado ainda. Configure as opções e clique em "Gerar Jogos".</p>';
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+        }
+        
+        // Inicializa com valores padrão
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('previousGame').value = defaultPreviousGame.join(',');
+        });
+    </script>
+</body>
+</html>
