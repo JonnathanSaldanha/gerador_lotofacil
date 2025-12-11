@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Jogos Lotofácil com Sequências</title>
+    <title>Gerador Avançado Lotofácil com Estatísticas</title>
     <style>
         * {
             margin: 0;
@@ -20,7 +20,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background-color: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
@@ -45,6 +45,8 @@
         .subtitle {
             color: #666;
             font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
         
         .lotofacil-logo {
@@ -72,7 +74,7 @@
             gap: 30px;
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .content {
                 grid-template-columns: 1fr;
             }
@@ -89,6 +91,12 @@
             color: #1a2a6c;
             margin-bottom: 20px;
             font-size: 1.8rem;
+        }
+        
+        h3 {
+            color: #1a2a6c;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
         }
         
         .form-group {
@@ -108,7 +116,7 @@
             margin-bottom: 5px;
         }
         
-        input[type="text"], input[type="number"], select {
+        input[type="text"], input[type="number"], select, textarea {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid #ddd;
@@ -117,26 +125,35 @@
             transition: border-color 0.3s;
         }
         
-        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+        input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
             border-color: #3a7bd5;
             outline: none;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 0.9rem;
         }
         
         .buttons {
             display: flex;
             gap: 15px;
             margin-top: 30px;
+            flex-wrap: wrap;
         }
         
         button {
-            flex: 1;
-            padding: 15px;
+            padding: 15px 25px;
             border: none;
             border-radius: 8px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            flex: 1;
+            min-width: 150px;
         }
         
         .generate-btn {
@@ -159,10 +176,31 @@
             transform: translateY(-3px);
         }
         
+        .export-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .export-btn:hover {
+            background-color: #218838;
+            transform: translateY(-3px);
+        }
+        
+        .copy-btn {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .copy-btn:hover {
+            background-color: #138496;
+            transform: translateY(-3px);
+        }
+        
         .games-container {
             max-height: 500px;
             overflow-y: auto;
             padding-right: 10px;
+            margin-bottom: 20px;
         }
         
         .game-card {
@@ -229,6 +267,15 @@
             box-shadow: 0 0 5px rgba(0,0,0,0.3);
         }
         
+        .number.hot {
+            background-color: #ffcc00 !important;
+            color: #333;
+        }
+        
+        .number.cold {
+            background-color: #6c757d !important;
+        }
+        
         .sequence-indicator {
             background-color: #ff6b6b;
             color: white;
@@ -257,14 +304,9 @@
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
         }
         
-        .summary h3 {
-            color: #1a2a6c;
-            margin-bottom: 15px;
-        }
-        
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
         }
         
@@ -292,11 +334,6 @@
             border-radius: 10px;
             padding: 20px;
             margin-top: 30px;
-        }
-        
-        .rules-info h3 {
-            color: #1a2a6c;
-            margin-bottom: 15px;
         }
         
         .rules-grid {
@@ -350,68 +387,283 @@
             display: none;
         }
         
-        .sequence-highlight {
-            background-color: #fff9e6;
+        .success {
+            background-color: #d4edda;
+            color: #155724;
             padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid #ffcc00;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .export-options {
+            background-color: #fff3cd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .stats-table th, .stats-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        
+        .stats-table th {
+            background-color: #1a2a6c;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .stats-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .hot-numbers {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .cold-numbers {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
             margin-top: 10px;
+        }
+        
+        .number-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .stat-number {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            flex-direction: column;
+            font-size: 0.8rem;
+        }
+        
+        .hot-stat {
+            background-color: #ffcc00;
+            color: #333;
+        }
+        
+        .cold-stat {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .stat-count {
+            font-size: 0.7rem;
+            margin-top: 2px;
+        }
+        
+        .tab-container {
+            margin-top: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .tab.active {
+            color: #1a2a6c;
+            border-bottom-color: #1a2a6c;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .games-raw {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .prev-games-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: white;
+        }
+        
+        .prev-game-item {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .prev-game-item:last-child {
+            border-bottom: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Gerador de Jogos Lotofácil com Sequências</h1>
-            <div class="subtitle">Todos os jogos incluem sequências de 4, 5, 6 ou 7 números consecutivos</div>
-            <div class="lotofacil-logo">LOTOFÁCIL COM SEQUÊNCIAS</div>
-            <div style="margin-top: 15px;">
-                <span class="highlight">NOVO: Sequências obrigatórias em todos os jogos</span>
-            </div>
+            <h1>Gerador Avançado de Jogos Lotofácil</h1>
+            <div class="subtitle">Análise estatística de até 10 concursos anteriores + Sequências obrigatórias + Exportação para XML/CSV</div>
+            <div class="lotofacil-logo">LOTOFÁCIL INTELIGENTE</div>
         </header>
         
         <div class="content">
             <div class="input-section">
                 <h2>Configurações do Gerador</h2>
                 
-                <div class="form-group">
-                    <label for="previousGame">Último Concurso (15 números de 01 a 25):</label>
-                    <div class="input-info">Digite os números separados por vírgula ou espaço</div>
-                    <input type="text" id="previousGame" placeholder="Ex: 1,2,5,7,8,9,11,13,14,17,19,21,22,23,25" value="1,2,5,7,8,9,11,13,14,17,19,21,22,23,25">
-                </div>
-                
-                <div class="form-group">
-                    <label for="gamesCount">Quantidade de Jogos a Gerar:</label>
-                    <input type="number" id="gamesCount" min="1" max="50" value="12">
-                </div>
-                
-                <div class="form-group">
-                    <label for="sequenceType">Tipo de Sequência Preferencial:</label>
-                    <select id="sequenceType">
-                        <option value="mixed">Misturado (4, 5, 6, 7 números)</option>
-                        <option value="4">Apenas 4 números</option>
-                        <option value="5">Apenas 5 números</option>
-                        <option value="6">Apenas 6 números</option>
-                        <option value="7">Apenas 7 números</option>
-                    </select>
+                <div class="tab-container">
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab('config')">Configurações</div>
+                        <div class="tab" onclick="switchTab('previous')">Concursos Anteriores</div>
+                        <div class="tab" onclick="switchTab('statistics')">Estatísticas</div>
+                    </div>
+                    
+                    <div id="config-tab" class="tab-content active">
+                        <div class="form-group">
+                            <label for="gamesCount">Quantidade de Jogos a Gerar:</label>
+                            <input type="number" id="gamesCount" min="1" max="100" value="12">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sequenceType">Tipo de Sequência:</label>
+                            <select id="sequenceType">
+                                <option value="mixed">Misturado (4, 5, 6, 7 números)</option>
+                                <option value="4">Apenas 4 números</option>
+                                <option value="5">Apenas 5 números</option>
+                                <option value="6">Apenas 6 números</option>
+                                <option value="7">Apenas 7 números</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="analysisDepth">Profundidade da Análise:</label>
+                            <select id="analysisDepth">
+                                <option value="1">Último concurso apenas</option>
+                                <option value="3" selected>3 concursos anteriores</option>
+                                <option value="5">5 concursos anteriores</option>
+                                <option value="10">10 concursos anteriores</option>
+                            </select>
+                            <div class="input-info">Quantos concursos anteriores considerar para análise estatística</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="useHotNumbers" checked>
+                                Priorizar números quentes (mais sorteados)
+                            </label>
+                            <div class="input-info">Inclui mais números que apareceram com frequência nos concursos anteriores</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="useColdNumbers" checked>
+                                Incluir alguns números frios (menos sorteados)
+                            </label>
+                            <div class="input-info">Inclui alguns números que apareceram com menos frequência</div>
+                        </div>
+                    </div>
+                    
+                    <div id="previous-tab" class="tab-content">
+                        <div class="form-group">
+                            <label for="previousGames">Concursos Anteriores (1 por linha):</label>
+                            <div class="input-info">Digite os números de cada concurso em linhas separadas. Ex: "1,2,5,7,8,9,11,13,14,17,19,21,22,23,25"</div>
+                            <textarea id="previousGames" placeholder="Cole aqui os concursos anteriores, um por linha">
+1,2,5,7,8,9,11,13,14,17,19,21,22,23,25
+2,3,4,6,8,10,12,14,15,16,18,20,21,23,24
+1,3,5,7,9,10,12,13,15,17,19,20,22,24,25
+2,4,6,8,9,11,13,14,16,18,19,20,22,23,25
+1,2,4,5,7,10,11,12,15,16,18,19,21,23,24
+3,5,6,8,9,10,12,14,15,17,18,20,21,22,24
+1,4,5,6,8,9,11,13,16,17,18,19,21,23,25
+2,3,5,7,9,10,12,14,15,16,18,20,22,23,24
+1,2,3,6,7,8,11,13,14,15,17,19,20,21,25
+2,4,5,8,9,10,12,13,14,16,18,19,22,24,25
+                            </textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="input-info">Concursos carregados:</div>
+                            <div class="prev-games-list" id="loadedGamesList"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="statistics-tab" class="tab-content">
+                        <div class="form-group">
+                            <h3>Frequência dos Números</h3>
+                            <div id="numberStats" class="number-stats"></div>
+                        </div>
+                        
+                        <div class="hot-numbers">
+                            <h4>Números Quentes (mais frequentes)</h4>
+                            <div id="hotNumbers" class="number-stats"></div>
+                        </div>
+                        
+                        <div class="cold-numbers">
+                            <h4>Números Frios (menos frequentes)</h4>
+                            <div id="coldNumbers" class="number-stats"></div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="rules-info">
                     <h3>Regras Aplicadas</h3>
                     <div class="rules-grid">
                         <div class="rule-item">
-                            <strong>Repetição do anterior:</strong><br>
-                            • 60%: 8 números<br>
-                            • 20%: 9 números<br>
-                            • 10%: 7 números<br>
-                            • 10%: 6 números
-                        </div>
-                        <div class="rule-item">
-                            <strong>Pares x Ímpares:</strong><br>
-                            • 30%: 6 pares, 9 ímpares<br>
-                            • 30%: 7 pares, 8 ímpares<br>
-                            • 30%: 8 pares, 7 ímpares<br>
-                            • 10%: 9 pares, 6 ímpares
+                            <strong>Análise Inteligente:</strong><br>
+                            • Considera até 10 concursos anteriores<br>
+                            • Calcula números quentes/frios<br>
+                            • Ajusta probabilidades dinamicamente
                         </div>
                         <div class="rule-item">
                             <strong>Sequências <span class="highlight">(OBRIGATÓRIAS)</span>:</strong><br>
@@ -421,24 +673,43 @@
                             • 15%: 6 números<br>
                             • 5%: 7 números
                         </div>
+                        <div class="rule-item">
+                            <strong>Exportação:</strong><br>
+                            • Copiar jogos para área de transferência<br>
+                            • Baixar como XML<br>
+                            • Baixar como CSV<br>
+                            • Baixar como TXT
+                        </div>
                     </div>
                 </div>
                 
                 <div class="buttons">
-                    <button class="generate-btn" onclick="generateGames()">Gerar Jogos com Sequências</button>
+                    <button class="generate-btn" onclick="generateGames()">Gerar Jogos Inteligentes</button>
                     <button class="clear-btn" onclick="clearGames()">Limpar Tudo</button>
                 </div>
                 
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
-                    <p>Criando jogos com sequências obrigatórias...</p>
+                    <p>Analisando estatísticas e criando jogos inteligentes...</p>
                 </div>
                 
                 <div class="error" id="error"></div>
+                <div class="success" id="success"></div>
             </div>
             
             <div class="output-section">
-                <h2>Jogos Gerados com Sequências</h2>
+                <h2>Jogos Gerados</h2>
+                
+                <div class="export-options">
+                    <h3>Exportar Jogos</h3>
+                    <div class="export-buttons">
+                        <button class="copy-btn" onclick="copyGamesToClipboard()">📋 Copiar Jogos</button>
+                        <button class="export-btn" onclick="exportToXML()">📄 Baixar XML</button>
+                        <button class="export-btn" onclick="exportToCSV()">📊 Baixar CSV</button>
+                        <button class="export-btn" onclick="exportToTXT()">📝 Baixar TXT</button>
+                    </div>
+                </div>
+                
                 <div class="games-container" id="gamesContainer">
                     <p id="noGames">Nenhum jogo gerado ainda. Configure as opções e clique em "Gerar Jogos".</p>
                 </div>
@@ -446,21 +717,41 @@
                 <div class="summary" id="summary" style="display: none;">
                     <h3>Resumo Estatístico</h3>
                     <div class="summary-grid" id="summaryGrid"></div>
+                    
+                    <div style="margin-top: 20px;">
+                        <h4>Distribuição por Jogo</h4>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Jogo</th>
+                                    <th>Números Quentes</th>
+                                    <th>Números Frios</th>
+                                    <th>Sequência</th>
+                                    <th>Repetições</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailedStats"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p>Este gerador cria jogos com sequências obrigatórias de 4 a 7 números consecutivos.</p>
+            <p>Gerador inteligente que analisa estatísticas de múltiplos concursos anteriores para criar jogos otimizados.</p>
             <p>Lembre-se: loterias são jogos de azar. Jogue com responsabilidade.</p>
         </footer>
     </div>
 
     <script>
-        // Último concurso padrão
-        const defaultPreviousGame = [1, 2, 5, 7, 8, 9, 11, 13, 14, 17, 19, 21, 22, 23, 25];
+        // Variáveis globais
+        let generatedGames = [];
+        let numberFrequency = {};
+        let hotNumbers = [];
+        let coldNumbers = [];
+        let previousGamesList = [];
         
-        // Regras de repetição
+        // Regras
         const repetitionRules = [
             { percentage: 60, repeatCount: 8 },
             { percentage: 20, repeatCount: 9 },
@@ -468,7 +759,6 @@
             { percentage: 10, repeatCount: 6 }
         ];
         
-        // Regras de pares/ímpares
         const parityRules = [
             { percentage: 30, evenCount: 6, oddCount: 9 },
             { percentage: 30, evenCount: 7, oddCount: 8 },
@@ -476,7 +766,6 @@
             { percentage: 10, evenCount: 9, oddCount: 6 }
         ];
         
-        // Regras de sequências (100% dos jogos)
         const sequenceRules = [
             { percentage: 40, length: 4 },
             { percentage: 40, length: 5 },
@@ -484,67 +773,142 @@
             { percentage: 5, length: 7 }
         ];
         
-        function parseInputNumbers(input) {
-            const numbers = input.replace(/\s+/g, ',')
-                .split(',')
-                .map(num => parseInt(num.trim()))
-                .filter(num => !isNaN(num) && num >= 1 && num <= 25);
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLoadedGamesList();
+            analyzeNumberFrequency();
+        });
+        
+        function switchTab(tabName) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            const uniqueNumbers = [...new Set(numbers)];
-            return uniqueNumbers;
+            // Add active class to selected tab and content
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'statistics') {
+                analyzeNumberFrequency();
+            }
         }
         
-        function getRandomNumbers(count, min, max, exclude = []) {
-            const numbers = [];
-            const available = Array.from({length: max - min + 1}, (_, i) => i + min)
-                .filter(n => !exclude.includes(n));
+        function parsePreviousGames() {
+            const textarea = document.getElementById('previousGames');
+            const lines = textarea.value.trim().split('\n');
+            const games = [];
             
-            while (numbers.length < count && available.length > 0) {
-                const randomIndex = Math.floor(Math.random() * available.length);
-                numbers.push(available[randomIndex]);
-                available.splice(randomIndex, 1);
+            lines.forEach((line, index) => {
+                const numbers = line.trim()
+                    .replace(/\s+/g, ',')
+                    .split(',')
+                    .map(num => parseInt(num.trim()))
+                    .filter(num => !isNaN(num) && num >= 1 && num <= 25);
+                
+                if (numbers.length === 15) {
+                    games.push(numbers.sort((a, b) => a - b));
+                }
+            });
+            
+            previousGamesList = games;
+            updateLoadedGamesList();
+            analyzeNumberFrequency();
+            
+            return games;
+        }
+        
+        function updateLoadedGamesList() {
+            const list = document.getElementById('loadedGamesList');
+            const games = parsePreviousGames();
+            
+            if (games.length === 0) {
+                list.innerHTML = '<div class="prev-game-item">Nenhum concurso válido encontrado</div>';
+                return;
             }
             
-            return numbers.sort((a, b) => a - b);
+            list.innerHTML = games.map((game, index) => 
+                `<div class="prev-game-item">Concurso ${index + 1}: ${game.map(n => n.toString().padStart(2, '0')).join(', ')}</div>`
+            ).join('');
         }
         
-        function countEvenOdd(numbers) {
-            const even = numbers.filter(n => n % 2 === 0).length;
-            const odd = numbers.filter(n => n % 2 === 1).length;
-            return { even, odd };
-        }
-        
-        function countRepeatedNumbers(game, previousGame) {
-            return game.filter(n => previousGame.includes(n)).length;
-        }
-        
-        function findSequence(numbers, length) {
-            const sorted = [...numbers].sort((a, b) => a - b);
+        function analyzeNumberFrequency() {
+            const games = parsePreviousGames();
+            const analysisDepth = parseInt(document.getElementById('analysisDepth').value);
+            const gamesToAnalyze = games.slice(0, analysisDepth);
             
-            for (let i = 0; i <= sorted.length - length; i++) {
-                let isSequence = true;
-                for (let j = 1; j < length; j++) {
-                    if (sorted[i + j] !== sorted[i] + j) {
-                        isSequence = false;
-                        break;
-                    }
-                }
-                if (isSequence) {
-                    return sorted.slice(i, i + length);
-                }
+            // Reset frequency counter
+            numberFrequency = {};
+            for (let i = 1; i <= 25; i++) {
+                numberFrequency[i] = 0;
             }
             
-            return null;
+            // Count frequency
+            gamesToAnalyze.forEach(game => {
+                game.forEach(number => {
+                    numberFrequency[number]++;
+                });
+            });
+            
+            // Sort numbers by frequency
+            const sortedNumbers = Object.entries(numberFrequency)
+                .sort((a, b) => b[1] - a[1]);
+            
+            // Determine hot and cold numbers
+            const hotCount = Math.ceil(25 * 0.3); // Top 30% are hot
+            const coldCount = Math.ceil(25 * 0.3); // Bottom 30% are cold
+            
+            hotNumbers = sortedNumbers.slice(0, hotCount).map(([num, freq]) => parseInt(num));
+            coldNumbers = sortedNumbers.slice(-coldCount).map(([num, freq]) => parseInt(num));
+            
+            // Update display
+            updateNumberStatsDisplay(sortedNumbers);
         }
         
-        function hasSequence(numbers) {
-            for (let length = 7; length >= 4; length--) {
-                const sequence = findSequence(numbers, length);
-                if (sequence) {
-                    return { length, numbers: sequence };
-                }
-            }
-            return null;
+        function updateNumberStatsDisplay(sortedNumbers) {
+            const statsContainer = document.getElementById('numberStats');
+            const hotContainer = document.getElementById('hotNumbers');
+            const coldContainer = document.getElementById('coldNumbers');
+            
+            // Clear containers
+            statsContainer.innerHTML = '';
+            hotContainer.innerHTML = '';
+            coldContainer.innerHTML = '';
+            
+            // Display all numbers with frequencies
+            sortedNumbers.forEach(([num, freq]) => {
+                const isHot = hotNumbers.includes(parseInt(num));
+                const isCold = coldNumbers.includes(parseInt(num));
+                
+                const statDiv = document.createElement('div');
+                statDiv.className = `stat-number ${isHot ? 'hot-stat' : (isCold ? 'cold-stat' : '')}`;
+                statDiv.innerHTML = `
+                    <div>${parseInt(num).toString().padStart(2, '0')}</div>
+                    <div class="stat-count">${freq}</div>
+                `;
+                statsContainer.appendChild(statDiv);
+            });
+            
+            // Display hot numbers
+            hotNumbers.forEach(num => {
+                const hotDiv = document.createElement('div');
+                hotDiv.className = 'stat-number hot-stat';
+                hotDiv.innerHTML = `
+                    <div>${num.toString().padStart(2, '0')}</div>
+                    <div class="stat-count">${numberFrequency[num]}</div>
+                `;
+                hotContainer.appendChild(hotDiv);
+            });
+            
+            // Display cold numbers
+            coldNumbers.forEach(num => {
+                const coldDiv = document.createElement('div');
+                coldDiv.className = 'stat-number cold-stat';
+                coldDiv.innerHTML = `
+                    <div>${num.toString().padStart(2, '0')}</div>
+                    <div class="stat-count">${numberFrequency[num]}</div>
+                `;
+                coldContainer.appendChild(coldDiv);
+            });
         }
         
         function selectRuleByPercentage(rules, count) {
@@ -577,307 +941,549 @@
             return distributedRules;
         }
         
+        function getWeightedRandomNumbers(count, previousGames) {
+            const useHotNumbers = document.getElementById('useHotNumbers').checked;
+            const useColdNumbers = document.getElementById('useColdNumbers').checked;
+            
+            // Create weighted pool based on frequency
+            let weightedPool = [];
+            
+            if (useHotNumbers) {
+                // Add hot numbers with higher weight
+                hotNumbers.forEach(num => {
+                    const weight = 3 + numberFrequency[num]; // Higher weight for hot numbers
+                    for (let i = 0; i < weight; i++) {
+                        weightedPool.push(num);
+                    }
+                });
+            }
+            
+            // Add all numbers with base weight
+            for (let num = 1; num <= 25; num++) {
+                if (!hotNumbers.includes(num) && !coldNumbers.includes(num)) {
+                    const weight = 1 + Math.max(0, numberFrequency[num] - 1);
+                    for (let i = 0; i < weight; i++) {
+                        weightedPool.push(num);
+                    }
+                }
+            }
+            
+            if (useColdNumbers) {
+                // Add cold numbers with lower weight but still chance
+                coldNumbers.forEach(num => {
+                    const weight = Math.max(1, numberFrequency[num]);
+                    for (let i = 0; i < weight; i++) {
+                        weightedPool.push(num);
+                    }
+                });
+            }
+            
+            // Shuffle the weighted pool
+            for (let i = weightedPool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [weightedPool[i], weightedPool[j]] = [weightedPool[j], weightedPool[i]];
+            }
+            
+            // Select unique numbers
+            const selected = [];
+            const available = [...weightedPool];
+            
+            while (selected.length < count && available.length > 0) {
+                const num = available.shift();
+                if (!selected.includes(num)) {
+                    selected.push(num);
+                }
+            }
+            
+            // If we don't have enough numbers, fill with random
+            if (selected.length < count) {
+                const needed = count - selected.length;
+                const allNumbers = Array.from({length: 25}, (_, i) => i + 1)
+                    .filter(n => !selected.includes(n));
+                
+                const additional = allNumbers
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, needed);
+                
+                selected.push(...additional);
+            }
+            
+            return selected.sort((a, b) => a - b);
+        }
+        
+        function generateGame(repetitionRule, parityRule, sequenceRule) {
+            const previousGames = parsePreviousGames();
+            const analysisDepth = parseInt(document.getElementById('analysisDepth').value);
+            const recentGames = previousGames.slice(0, analysisDepth);
+            
+            // Combine recent games for repetition analysis
+            const combinedPrevious = [...new Set(recentGames.flat())];
+            
+            // Determine how many numbers to repeat from recent games
+            const repeatCount = repetitionRule.repeatCount;
+            const numbersToRepeat = getWeightedRandomNumbers(repeatCount, recentGames);
+            
+            // Get remaining numbers based on parity rules
+            const evenCount = parityRule.evenCount;
+            const oddCount = parityRule.oddCount;
+            
+            // Count current parity
+            const currentEven = numbersToRepeat.filter(n => n % 2 === 0).length;
+            const currentOdd = numbersToRepeat.filter(n => n % 2 === 1).length;
+            
+            // Calculate needed numbers
+            const needEven = Math.max(0, evenCount - currentEven);
+            const needOdd = Math.max(0, oddCount - currentOdd);
+            
+            // Get additional numbers
+            let additionalNumbers = [];
+            
+            // Add needed even numbers
+            if (needEven > 0) {
+                const evenCandidates = Array.from({length: 25}, (_, i) => i + 1)
+                    .filter(n => n % 2 === 0 && !numbersToRepeat.includes(n));
+                const selectedEvens = getWeightedRandomNumbers(needEven, recentGames)
+                    .filter(n => n % 2 === 0 && !numbersToRepeat.includes(n))
+                    .slice(0, needEven);
+                additionalNumbers.push(...selectedEvens);
+            }
+            
+            // Add needed odd numbers
+            if (needOdd > 0) {
+                const oddCandidates = Array.from({length: 25}, (_, i) => i + 1)
+                    .filter(n => n % 2 === 1 && !numbersToRepeat.includes(n) && !additionalNumbers.includes(n));
+                const selectedOdds = getWeightedRandomNumbers(needOdd, recentGames)
+                    .filter(n => n % 2 === 1 && !numbersToRepeat.includes(n) && !additionalNumbers.includes(n))
+                    .slice(0, needOdd);
+                additionalNumbers.push(...selectedOdds);
+            }
+            
+            // Combine all numbers
+            let game = [...numbersToRepeat, ...additionalNumbers];
+            
+            // Ensure we have 15 numbers
+            if (game.length < 15) {
+                const needed = 15 - game.length;
+                const remaining = getWeightedRandomNumbers(needed, recentGames)
+                    .filter(n => !game.includes(n))
+                    .slice(0, needed);
+                game.push(...remaining);
+            }
+            
+            // Sort and ensure uniqueness
+            game = [...new Set(game)].sort((a, b) => a - b);
+            
+            // If still not 15, fill with random
+            if (game.length < 15) {
+                const needed = 15 - game.length;
+                const allNumbers = Array.from({length: 25}, (_, i) => i + 1)
+                    .filter(n => !game.includes(n));
+                const randomFill = allNumbers
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, needed);
+                game.push(...randomFill);
+                game.sort((a, b) => a - b);
+            }
+            
+            // Add sequence
+            const sequenceLength = sequenceRule.length;
+            game = addSequenceToGame(game, sequenceLength);
+            
+            return game.sort((a, b) => a - b);
+        }
+        
         function addSequenceToGame(game, sequenceLength) {
+            // Try to find existing sequence
+            for (let start = 1; start <= 25 - sequenceLength + 1; start++) {
+                const sequence = Array.from({length: sequenceLength}, (_, i) => start + i);
+                const hasSequence = sequence.every(num => game.includes(num));
+                
+                if (hasSequence) {
+                    return game; // Already has sequence
+                }
+            }
+            
+            // Add a sequence
             const maxStart = 25 - sequenceLength + 1;
             const sequenceStart = Math.floor(Math.random() * maxStart) + 1;
             const sequence = Array.from({length: sequenceLength}, (_, i) => sequenceStart + i);
             
-            // Remove números que não estão na sequência e adiciona a sequência
-            const nonSequenceNumbers = game.filter(n => !sequence.includes(n));
+            // Remove non-sequence numbers and add sequence
+            const nonSequenceNumbers = game.filter(num => !sequence.includes(num));
             const numbersToKeep = nonSequenceNumbers.slice(0, 15 - sequenceLength);
             
             return [...numbersToKeep, ...sequence].sort((a, b) => a - b);
         }
         
-        function ensureSequence(game, targetSequenceLength) {
-            // Primeiro, verifica se já tem uma sequência do tamanho desejado
-            const existingSequence = findSequence(game, targetSequenceLength);
-            if (existingSequence) {
-                return { game, sequence: existingSequence, length: targetSequenceLength };
-            }
-            
-            // Se não tem, tenta encontrar uma sequência maior
-            for (let length = targetSequenceLength + 1; length <= 7; length++) {
-                const largerSequence = findSequence(game, length);
-                if (largerSequence) {
-                    return { game, sequence: largerSequence, length };
+        function findSequence(game) {
+            for (let length = 7; length >= 4; length--) {
+                for (let start = 1; start <= 25 - length + 1; start++) {
+                    const sequence = Array.from({length: length}, (_, i) => start + i);
+                    if (sequence.every(num => game.includes(num))) {
+                        return { length, numbers: sequence };
+                    }
                 }
             }
-            
-            // Se não tem sequência, cria uma
-            const newGame = addSequenceToGame(game, targetSequenceLength);
-            const newSequence = findSequence(newGame, targetSequenceLength);
-            
-            return { game: newGame, sequence: newSequence, length: targetSequenceLength };
-        }
-        
-        function generateGame(previousGame, repetitionRule, parityRule, sequenceRule) {
-            // Determina quantos números repetir do concurso anterior
-            const repeatCount = repetitionRule.repeatCount;
-            
-            // Seleciona números para repetir
-            const repeated = [...previousGame]
-                .sort(() => Math.random() - 0.5)
-                .slice(0, repeatCount);
-            
-            // Determina a distribuição de pares/ímpares
-            const evenCount = parityRule.evenCount;
-            const oddCount = parityRule.oddCount;
-            
-            // Calcula quantos pares/ímpares já temos nos números repetidos
-            const repeatedEven = repeated.filter(n => n % 2 === 0).length;
-            const repeatedOdd = repeated.filter(n => n % 2 === 1).length;
-            
-            // Calcula quantos pares/ímpares ainda precisamos
-            const needEven = Math.max(0, evenCount - repeatedEven);
-            const needOdd = Math.max(0, oddCount - repeatedOdd);
-            
-            // Gera números pares adicionais
-            const availableEven = Array.from({length: 25}, (_, i) => i + 1)
-                .filter(n => n % 2 === 0 && !repeated.includes(n));
-            const newEven = availableEven
-                .sort(() => Math.random() - 0.5)
-                .slice(0, needEven);
-            
-            // Gera números ímpares adicionais
-            const availableOdd = Array.from({length: 25}, (_, i) => i + 1)
-                .filter(n => n % 2 === 1 && !repeated.includes(n) && !newEven.includes(n));
-            const newOdd = availableOdd
-                .sort(() => Math.random() - 0.5)
-                .slice(0, needOdd);
-            
-            // Combina todos os números
-            let game = [...repeated, ...newEven, ...newOdd];
-            
-            // Se ainda não temos 15 números, preenche com números aleatórios
-            if (game.length < 15) {
-                const needed = 15 - game.length;
-                const availableAll = Array.from({length: 25}, (_, i) => i + 1)
-                    .filter(n => !game.includes(n));
-                const additional = availableAll
-                    .sort(() => Math.random() - 0.5)
-                    .slice(0, needed);
-                game = [...game, ...additional];
-            }
-            
-            // Ordena o jogo
-            game.sort((a, b) => a - b);
-            
-            // Garante que tenha uma sequência do tamanho desejado
-            const targetSequenceLength = sequenceRule.length;
-            const result = ensureSequence(game, targetSequenceLength);
-            
-            return result;
+            return null;
         }
         
         function generateGames() {
-            // Mostra loading
+            // Show loading
             document.getElementById('loading').style.display = 'block';
             document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
             
-            // Limpa jogos anteriores
+            // Clear previous games
             document.getElementById('gamesContainer').innerHTML = '';
             document.getElementById('summary').style.display = 'none';
             
-            // Pega os valores de entrada
-            const previousGameInput = document.getElementById('previousGame').value;
+            // Get input values
             const gamesCount = parseInt(document.getElementById('gamesCount').value);
             const sequenceType = document.getElementById('sequenceType').value;
             
-            // Valida entrada
-            let previousGame;
-            if (previousGameInput.trim() === '') {
-                previousGame = defaultPreviousGame;
-            } else {
-                previousGame = parseInputNumbers(previousGameInput);
-            }
-            
-            if (previousGame.length !== 15) {
+            // Validate
+            if (gamesCount < 1 || gamesCount > 100) {
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
-                document.getElementById('error').innerHTML = 
-                    `Erro: O concurso anterior deve ter exatamente 15 números. Você forneceu ${previousGame.length} números válidos.`;
+                showError('A quantidade de jogos deve ser entre 1 e 100.');
                 return;
             }
             
-            if (gamesCount < 1 || gamesCount > 50) {
+            // Parse previous games
+            const previousGames = parsePreviousGames();
+            if (previousGames.length === 0) {
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
-                document.getElementById('error').innerHTML = 
-                    'Erro: A quantidade de jogos deve ser entre 1 e 50.';
+                showError('Nenhum concurso anterior válido encontrado. Insira pelo menos um concurso.');
                 return;
             }
             
-            // Ajusta as regras de sequência conforme a seleção
+            // Analyze frequency
+            analyzeNumberFrequency();
+            
+            // Adjust sequence rules if needed
             let sequenceRulesToUse = [...sequenceRules];
             if (sequenceType !== 'mixed') {
                 const fixedLength = parseInt(sequenceType);
                 sequenceRulesToUse = [{ percentage: 100, length: fixedLength }];
             }
             
-            // Distribui as regras
+            // Distribute rules
             const repetitionRulesDistributed = selectRuleByPercentage(repetitionRules, gamesCount);
             const parityRulesDistributed = selectRuleByPercentage(parityRules, gamesCount);
             const sequenceRulesDistributed = selectRuleByPercentage(sequenceRulesToUse, gamesCount);
             
-            // Gera os jogos
-            const games = [];
-            const gameSequences = [];
-            const stats = {
-                repetition: {6: 0, 7: 0, 8: 0, 9: 0},
-                parity: {'6p9i': 0, '7p8i': 0, '8p7i': 0, '9p6i': 0},
-                sequences: {4: 0, 5: 0, 6: 0, 7: 0}
-            };
+            // Generate games
+            generatedGames = [];
+            const gamesWithStats = [];
             
             for (let i = 0; i < gamesCount; i++) {
-                const result = generateGame(
-                    previousGame, 
-                    repetitionRulesDistributed[i], 
+                const game = generateGame(
+                    repetitionRulesDistributed[i],
                     parityRulesDistributed[i],
                     sequenceRulesDistributed[i]
                 );
                 
-                games.push(result.game);
-                gameSequences.push(result);
+                generatedGames.push(game);
                 
-                // Atualiza estatísticas
-                const repeated = countRepeatedNumbers(result.game, previousGame);
-                stats.repetition[repeated]++;
+                // Calculate statistics for this game
+                const hotCount = game.filter(num => hotNumbers.includes(num)).length;
+                const coldCount = game.filter(num => coldNumbers.includes(num)).length;
+                const sequenceInfo = findSequence(game);
+                const repeatedCount = game.filter(num => previousGames[0]?.includes(num) || 0).length;
                 
-                const {even, odd} = countEvenOdd(result.game);
-                const parityKey = `${even}p${odd}i`;
-                if (stats.parity[parityKey] !== undefined) {
-                    stats.parity[parityKey]++;
-                }
-                
-                // Contabiliza sequências
-                stats.sequences[result.length]++;
+                gamesWithStats.push({
+                    game,
+                    hotCount,
+                    coldCount,
+                    sequenceInfo,
+                    repeatedCount
+                });
             }
             
-            // Esconde loading
+            // Hide loading and display results
             setTimeout(() => {
                 document.getElementById('loading').style.display = 'none';
-                displayGames(games, previousGame, gameSequences, stats);
-            }, 500);
+                displayGames(gamesWithStats);
+                showSuccess(`${gamesCount} jogos gerados com sucesso!`);
+            }, 800);
         }
         
-        function displayGames(games, previousGame, gameSequences, stats) {
+        function displayGames(gamesWithStats) {
             const container = document.getElementById('gamesContainer');
-            container.innerHTML = '';
+            const detailedStats = document.getElementById('detailedStats');
             
-            if (games.length === 0) {
-                container.innerHTML = '<p id="noGames">Nenhum jogo gerado ainda. Configure as opções e clique em "Gerar Jogos".</p>';
+            if (gamesWithStats.length === 0) {
+                container.innerHTML = '<p id="noGames">Nenhum jogo gerado ainda.</p>';
                 return;
             }
             
-            games.forEach((game, index) => {
-                const repeated = countRepeatedNumbers(game, previousGame);
-                const {even, odd} = countEvenOdd(game);
-                const sequenceInfo = gameSequences[index];
-                
-                const gameCard = document.createElement('div');
-                gameCard.className = 'game-card';
-                
-                // Identifica quais números estão na sequência
-                const sequenceNumbers = sequenceInfo.sequence;
+            container.innerHTML = '';
+            detailedStats.innerHTML = '';
+            
+            gamesWithStats.forEach((stats, index) => {
+                const { game, hotCount, coldCount, sequenceInfo, repeatedCount } = stats;
+                const { even, odd } = countEvenOdd(game);
+                const sequenceNumbers = sequenceInfo ? sequenceInfo.numbers : [];
                 const sequenceSet = new Set(sequenceNumbers);
                 
+                // Create game card
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card';
                 gameCard.innerHTML = `
                     <div class="game-header">
                         <div class="game-title">Jogo ${index + 1}</div>
                         <div class="game-stats">
-                            Repete ${repeated} do anterior | ${even} pares, ${odd} ímpares
+                            ${hotCount} quentes • ${coldCount} frios • ${repeatedCount} repetidos
                         </div>
                     </div>
                     <div class="numbers">
                         ${game.map(num => {
                             const isEven = num % 2 === 0;
+                            const isHot = hotNumbers.includes(num);
+                            const isCold = coldNumbers.includes(num);
                             const inSequence = sequenceSet.has(num);
-                            const numberClass = `number ${isEven ? 'even' : 'odd'} ${inSequence ? 'sequence' : ''}`;
-                            return `<div class="${numberClass}" title="${inSequence ? 'Número na sequência' : ''}">${num.toString().padStart(2, '0')}</div>`;
+                            let className = `number ${isEven ? 'even' : 'odd'}`;
+                            if (inSequence) className += ' sequence';
+                            if (isHot) className += ' hot';
+                            if (isCold) className += ' cold';
+                            
+                            return `<div class="${className}" title="Número ${num}${isHot ? ' (Quente)' : ''}${isCold ? ' (Frio)' : ''}${inSequence ? ' (Sequência)' : ''}">
+                                ${num.toString().padStart(2, '0')}
+                            </div>`;
                         }).join('')}
                     </div>
-                    <div class="sequence-highlight">
+                    ${sequenceInfo ? `
                         <div class="sequence-indicator">
-                            SEQUÊNCIA DE ${sequenceInfo.length} NÚMEROS: ${sequenceNumbers.join(', ')}
-                            <span class="sequence-type">${sequenceInfo.length} números consecutivos</span>
+                            SEQUÊNCIA DE ${sequenceInfo.length}: ${sequenceNumbers.join(', ')}
+                            <span class="sequence-type">${sequenceInfo.length} números</span>
                         </div>
-                    </div>
+                    ` : ''}
                 `;
                 
                 container.appendChild(gameCard);
+                
+                // Add to detailed stats table
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${hotCount}</td>
+                    <td>${coldCount}</td>
+                    <td>${sequenceInfo ? sequenceInfo.length + ' números' : 'N/A'}</td>
+                    <td>${repeatedCount}</td>
+                `;
+                detailedStats.appendChild(row);
             });
             
-            // Mostra resumo estatístico
-            displaySummary(stats, games.length);
+            // Show summary
+            displaySummary(gamesWithStats);
         }
         
-        function displaySummary(stats, totalGames) {
+        function countEvenOdd(numbers) {
+            const even = numbers.filter(n => n % 2 === 0).length;
+            const odd = numbers.filter(n => n % 2 === 1).length;
+            return { even, odd };
+        }
+        
+        function displaySummary(gamesWithStats) {
             const summary = document.getElementById('summary');
             const summaryGrid = document.getElementById('summaryGrid');
             
             summary.style.display = 'block';
             
-            // Calcula percentuais
-            const rep6 = ((stats.repetition[6] / totalGames) * 100).toFixed(1);
-            const rep7 = ((stats.repetition[7] / totalGames) * 100).toFixed(1);
-            const rep8 = ((stats.repetition[8] / totalGames) * 100).toFixed(1);
-            const rep9 = ((stats.repetition[9] / totalGames) * 100).toFixed(1);
+            // Calculate statistics
+            const totalGames = gamesWithStats.length;
+            const avgHot = (gamesWithStats.reduce((sum, stats) => sum + stats.hotCount, 0) / totalGames).toFixed(1);
+            const avgCold = (gamesWithStats.reduce((sum, stats) => sum + stats.coldCount, 0) / totalGames).toFixed(1);
+            const avgRepeated = (gamesWithStats.reduce((sum, stats) => sum + stats.repeatedCount, 0) / totalGames).toFixed(1);
             
-            const seq4 = ((stats.sequences[4] / totalGames) * 100).toFixed(1);
-            const seq5 = ((stats.sequences[5] / totalGames) * 100).toFixed(1);
-            const seq6 = ((stats.sequences[6] / totalGames) * 100).toFixed(1);
-            const seq7 = ((stats.sequences[7] / totalGames) * 100).toFixed(1);
+            // Count sequences by length
+            const sequenceCounts = {4: 0, 5: 0, 6: 0, 7: 0};
+            gamesWithStats.forEach(stats => {
+                if (stats.sequenceInfo) {
+                    sequenceCounts[stats.sequenceInfo.length]++;
+                }
+            });
+            
+            const seq4 = ((sequenceCounts[4] / totalGames) * 100).toFixed(1);
+            const seq5 = ((sequenceCounts[5] / totalGames) * 100).toFixed(1);
+            const seq6 = ((sequenceCounts[6] / totalGames) * 100).toFixed(1);
+            const seq7 = ((sequenceCounts[7] / totalGames) * 100).toFixed(1);
             
             summaryGrid.innerHTML = `
                 <div class="summary-item">
-                    <div class="summary-value">${rep8}%</div>
-                    <div class="summary-label">Repetem 8 números</div>
+                    <div class="summary-value">${totalGames}</div>
+                    <div class="summary-label">Jogos Gerados</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-value">${rep9}%</div>
-                    <div class="summary-label">Repetem 9 números</div>
+                    <div class="summary-value">${avgHot}</div>
+                    <div class="summary-label">Média de Quentes</div>
                 </div>
                 <div class="summary-item">
-                    <div class="summary-value">100%</div>
-                    <div class="summary-label">Com sequências</div>
+                    <div class="summary-value">${avgCold}</div>
+                    <div class="summary-label">Média de Frios</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">${avgRepeated}</div>
+                    <div class="summary-label">Média Repetidos</div>
                 </div>
                 <div class="summary-item">
                     <div class="summary-value">${seq4}%</div>
-                    <div class="summary-label">Sequências de 4</div>
+                    <div class="summary-label">Seq. de 4</div>
                 </div>
                 <div class="summary-item">
                     <div class="summary-value">${seq5}%</div>
-                    <div class="summary-label">Sequências de 5</div>
+                    <div class="summary-label">Seq. de 5</div>
                 </div>
                 <div class="summary-item">
                     <div class="summary-value">${seq6}%</div>
-                    <div class="summary-label">Sequências de 6</div>
+                    <div class="summary-label">Seq. de 6</div>
                 </div>
                 <div class="summary-item">
                     <div class="summary-value">${seq7}%</div>
-                    <div class="summary-label">Sequências de 7</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value">${totalGames}</div>
-                    <div class="summary-label">Total de jogos</div>
+                    <div class="summary-label">Seq. de 7</div>
                 </div>
             `;
         }
         
+        function copyGamesToClipboard() {
+            if (generatedGames.length === 0) {
+                showError('Nenhum jogo para copiar. Gere jogos primeiro.');
+                return;
+            }
+            
+            const text = generatedGames.map((game, index) => 
+                `Jogo ${index + 1}: ${game.map(n => n.toString().padStart(2, '0')).join(' - ')}`
+            ).join('\n');
+            
+            navigator.clipboard.writeText(text)
+                .then(() => showSuccess('Jogos copiados para a área de transferência!'))
+                .catch(() => {
+                    // Fallback for older browsers
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    showSuccess('Jogos copiados para a área de transferência!');
+                });
+        }
+        
+        function exportToXML() {
+            if (generatedGames.length === 0) {
+                showError('Nenhum jogo para exportar. Gere jogos primeiro.');
+                return;
+            }
+            
+            const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<jogos_lotofacil>
+    <data_geracao>${new Date().toISOString()}</data_geracao>
+    <quantidade_jogos>${generatedGames.length}</quantidade_jogos>
+    <jogos>
+        ${generatedGames.map((game, index) => `
+        <jogo id="${index + 1}">
+            ${game.map(num => `<numero>${num}</numero>`).join('\n            ')}
+        </jogo>`).join('\n        ')}
+    </jogos>
+    <estatisticas>
+        <numeros_quentes>${hotNumbers.join(',')}</numeros_quentes>
+        <numeros_frios>${coldNumbers.join(',')}</numeros_frios>
+    </estatisticas>
+</jogos_lotofacil>`;
+            
+            downloadFile(xmlContent, 'jogos_lotofacil.xml', 'application/xml');
+        }
+        
+        function exportToCSV() {
+            if (generatedGames.length === 0) {
+                showError('Nenhum jogo para exportar. Gere jogos primeiro.');
+                return;
+            }
+            
+            let csvContent = 'Jogo;N1;N2;N3;N4;N5;N6;N7;N8;N9;N10;N11;N12;N13;N14;N15\n';
+            
+            generatedGames.forEach((game, index) => {
+                const paddedGame = game.map(n => n.toString().padStart(2, '0'));
+                csvContent += `Jogo ${index + 1};${paddedGame.join(';')}\n`;
+            });
+            
+            downloadFile(csvContent, 'jogos_lotofacil.csv', 'text/csv');
+        }
+        
+        function exportToTXT() {
+            if (generatedGames.length === 0) {
+                showError('Nenhum jogo para exportar. Gere jogos primeiro.');
+                return;
+            }
+            
+            const txtContent = `JOGOS LOTOFÁCIL - Gerado em ${new Date().toLocaleString()}\n\n` +
+                generatedGames.map((game, index) => 
+                    `Jogo ${index + 1}: ${game.map(n => n.toString().padStart(2, '0')).join(' - ')}`
+                ).join('\n\n') +
+                `\n\n--- ESTATÍSTICAS ---\n` +
+                `Números Quentes: ${hotNumbers.map(n => n.toString().padStart(2, '0')).join(', ')}\n` +
+                `Números Frios: ${coldNumbers.map(n => n.toString().padStart(2, '0')).join(', ')}\n` +
+                `Total de Jogos: ${generatedGames.length}`;
+            
+            downloadFile(txtContent, 'jogos_lotofacil.txt', 'text/plain');
+        }
+        
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showSuccess(`Arquivo ${filename} baixado com sucesso!`);
+        }
+        
         function clearGames() {
-            document.getElementById('previousGame').value = defaultPreviousGame.join(',');
+            generatedGames = [];
+            document.getElementById('previousGames').value = `1,2,5,7,8,9,11,13,14,17,19,21,22,23,25
+2,3,4,6,8,10,12,14,15,16,18,20,21,23,24
+1,3,5,7,9,10,12,13,15,17,19,20,22,24,25
+2,4,6,8,9,11,13,14,16,18,19,20,22,23,25
+1,2,4,5,7,10,11,12,15,16,18,19,21,23,24
+3,5,6,8,9,10,12,14,15,17,18,20,21,22,24
+1,4,5,6,8,9,11,13,16,17,18,19,21,23,25
+2,3,5,7,9,10,12,14,15,16,18,20,22,23,24
+1,2,3,6,7,8,11,13,14,15,17,19,20,21,25
+2,4,5,8,9,10,12,13,14,16,18,19,22,24,25`;
             document.getElementById('gamesCount').value = 12;
             document.getElementById('sequenceType').value = 'mixed';
+            document.getElementById('analysisDepth').value = '3';
             document.getElementById('gamesContainer').innerHTML = '<p id="noGames">Nenhum jogo gerado ainda. Configure as opções e clique em "Gerar Jogos".</p>';
             document.getElementById('summary').style.display = 'none';
             document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+            
+            updateLoadedGamesList();
+            analyzeNumberFrequency();
         }
         
-        // Inicializa com valores padrão
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('previousGame').value = defaultPreviousGame.join(',');
-        });
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
+        }
     </script>
 </body>
 </html>
